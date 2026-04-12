@@ -10,7 +10,9 @@
       "Bash(PATH=\"/opt/homebrew/bin:$PATH\" /opt/homebrew/bin/node -e \"const {DatabaseSync} = require\\(''node:sqlite''\\); console.log\\(''built-in sqlite ok''\\)\")",
       "Bash(PATH=\"/opt/homebrew/bin:$PATH\" timeout 4 /opt/homebrew/bin/node server.js)",
       "Bash(PATH=\"/opt/homebrew/bin:$PATH\" /opt/homebrew/bin/node --check server.js)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"Simplify Update button - icon only, no text:*)"
     ]
   }
 }

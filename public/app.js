@@ -366,27 +366,29 @@ async function updateCode() {
   if (!btn) return;
 
   btn.disabled = true;
-  btn.textContent = '⟳ Updating...';
+  btn.textContent = '⟳';
+  btn.style.opacity = '0.5';
 
   try {
     const res = await fetch('/api/update', { method: 'POST' });
     const data = await res.json();
 
     if (data.ok) {
-      btn.textContent = '✓ Updated!';
+      btn.textContent = '✓';
       setTimeout(() => {
-        alert('Code updated! Reload the page to see changes.');
         window.location.reload();
       }, 500);
     } else {
-      btn.textContent = '✗ Update failed';
+      btn.textContent = '⟳';
+      btn.disabled = false;
+      btn.style.opacity = '1';
       alert('Update failed: ' + (data.error || 'Unknown error'));
-      setTimeout(() => { btn.textContent = '⟳ Update'; btn.disabled = false; }, 2000);
     }
   } catch (err) {
-    btn.textContent = '✗ Error';
+    btn.textContent = '⟳';
+    btn.disabled = false;
+    btn.style.opacity = '1';
     alert('Error: ' + err.message);
-    setTimeout(() => { btn.textContent = '⟳ Update'; btn.disabled = false; }, 2000);
   }
 }
 
