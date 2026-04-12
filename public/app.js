@@ -70,12 +70,27 @@ function startClock() {
   setInterval(tick, 1000);
 }
 
+/* ── Update screen border color based on performance ──────────────────────── */
+function updateBorderColor() {
+  const score = getPerformanceScore(
+    stats.today?.hours || 0,
+    GOAL_HOURS,
+    stats.mrr?.current || 0,
+    GOAL_MRR
+  );
+  const color = scoreToColor(score);
+  document.documentElement.style.setProperty('--border-r', Math.round(color.r));
+  document.documentElement.style.setProperty('--border-g', Math.round(color.g));
+  document.documentElement.style.setProperty('--border-b', Math.round(color.b));
+}
+
 /* ── Render ──────────────────────────────────────────────────────────────── */
 function render() {
   renderMRR();
   renderHours();
   renderInsights();
   updateWaveColor();
+  updateBorderColor();
 }
 
 function getCardState(pct) {

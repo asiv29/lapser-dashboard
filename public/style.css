@@ -24,6 +24,11 @@
   --wr: 16;
   --wg: 185;
   --wb2: 129;
+
+  /* Screen border (animated by performance) */
+  --border-r: 255;
+  --border-g: 20;
+  --border-b: 20;
 }
 
 html, body {
@@ -35,6 +40,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -webkit-font-feature-settings: "kern";
   overflow: hidden;
+}
+
+body {
+  border: 3px solid rgb(var(--border-r), var(--border-g), var(--border-b));
+  transition: border-color 0.15s ease-out;
+  box-sizing: border-box;
 }
 
 /* ── Wave stage ──────────────────────────────────────────────────────────── */
