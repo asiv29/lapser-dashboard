@@ -2,15 +2,15 @@
 let GOAL_HOURS = 6;
 let GOAL_MRR = 10000;
 
-// ADHD-optimized color gradient: vibrant, high-saturation, high-contrast
-// Red → Orange → Yellow → Cyan → Bright Green
+/// ADHD-optimized color gradient: warm & motivating, not anxiety-inducing
+// Purple → Warm Orange → Gold → Cyan → Bright Green
 const COLORS = [
-  { score: 0,   r: 255, g: 20,  b: 20  },   // Vibrant Red
-  { score: 20,  r: 255, g: 100, b: 0   },   // Bold Orange
-  { score: 40,  r: 255, g: 180, b: 0   },   // Bright Yellow
-  { score: 60,  r: 0,   g: 200, b: 255 },   // Cyan (dopamine peak)
-  { score: 80,  r: 0,   g: 220, b: 100 },   // Bright Green-Cyan
-  { score: 100, r: 50,  g: 255, b: 100 },   // Bright Lime Green
+  { score: 0,   r: 180, g: 100, b: 200 }, // Soft Lavender Purple (calm, not harsh)
+  { score: 20,  r: 220, g: 120, b: 80  }, // Warm Salmon (encouraging)
+  { score: 40,  r: 240, g: 180, b: 60  }, // Warm Gold (optimistic)
+  { score: 60,  r: 100, g: 200, b: 255 }, // Soft Cyan (flow state)
+  { score: 80,  r: 100, g: 220, b: 150 }, // Mint Green (achievement!)
+  { score: 100, r: 80,  g: 255, b: 120 }, // Bright Lime (victory!)
 ];
 
 /* ── State ───────────────────────────────────────────────────────────────── */

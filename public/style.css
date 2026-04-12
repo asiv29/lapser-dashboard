@@ -26,9 +26,15 @@
   --wb2: 129;
 
   /* Screen border (animated by performance) */
-  --border-r: 255;
-  --border-g: 20;
-  --border-b: 20;
+  --border-r: 150;
+  --border-g: 80;
+  --border-b: 180;
+  --glow-pulse: 1;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { --glow-pulse: 1; }
+  50% { --glow-pulse: 1.4; }
 }
 
 html, body {
@@ -43,11 +49,12 @@ html, body {
 }
 
 body {
-  box-shadow: inset 0 0 120px 40px rgba(var(--border-r), var(--border-g), var(--border-b), 0.25),
-              inset 0 0 60px 20px rgba(var(--border-r), var(--border-g), var(--border-b), 0.15),
-              0 0 100px 30px rgba(var(--border-r), var(--border-g), var(--border-b), 0.20),
-              0 0 60px 15px rgba(var(--border-r), var(--border-g), var(--border-b), 0.12);
-  transition: box-shadow 0.15s ease-out;
+  box-shadow: inset 0 0 120px 40px rgba(var(--border-r), var(--border-g), var(--border-b), calc(0.15 * var(--glow-pulse))),
+              inset 0 0 60px 20px rgba(var(--border-r), var(--border-g), var(--border-b), calc(0.10 * var(--glow-pulse))),
+              0 0 100px 30px rgba(var(--border-r), var(--border-g), var(--border-b), calc(0.12 * var(--glow-pulse))),
+              0 0 60px 15px rgba(var(--border-r), var(--border-g), var(--border-b), calc(0.08 * var(--glow-pulse)));
+  animation: glow-pulse 4s ease-in-out infinite;
+  transition: box-shadow 0.2s ease-out;
   box-sizing: border-box;
 }
 
