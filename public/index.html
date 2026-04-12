@@ -20,6 +20,12 @@
     <canvas class="wave-canvas" id="wave-canvas"></canvas>
   </div>
 
+  <!-- Tab Navigation -->
+  <nav class="tabs-nav" id="tabs-nav">
+    <button class="tab-button active" data-tab="productivity">📊 Productivity</button>
+    <button class="tab-button" data-tab="calendar" id="tab-calendar-btn">📅 Tasks</button>
+  </nav>
+
   <!-- Header (hover to show) -->
   <header class="header" id="header">
     <div class="logo">
@@ -33,8 +39,12 @@
     </div>
   </header>
 
-  <!-- Main grid -->
-  <main class="main">
+  <!-- Tab Panels -->
+  <div class="tab-panels">
+    <!-- Tab 1: Productivity (existing content) -->
+    <div class="tab-panel active" id="tab-productivity">
+      <!-- Main grid -->
+      <main class="main">
     <!-- Top cards -->
     <div class="cards-grid">
       <!-- MRR Card -->
@@ -95,6 +105,23 @@
       </div>
     </div>
   </main>
+    </div>
+
+    <!-- Tab 2: Calendar Tasks (NEW) -->
+    <div class="tab-panel" id="tab-calendar">
+      <div class="calendar-container">
+        <div class="calendar-header">
+          <div>
+            <h2>Upcoming Tasks</h2>
+            <p class="calendar-subtitle">From your Google Calendar</p>
+          </div>
+          <button class="btn-sync" onclick="syncCalendar()" id="btn-sync">🔄 Sync</button>
+        </div>
+        <div class="calendar-status" id="calendar-status"></div>
+        <div class="task-list" id="task-list"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Settings Modal -->
   <div class="overlay" id="modal-settings" onclick="closeModal('settings')">

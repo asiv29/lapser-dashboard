@@ -1,6 +1,9 @@
 /* ── Config ──────────────────────────────────────────────────────────────── */
 let GOAL_HOURS = 6;
 let GOAL_MRR = 10000;
+let currentTab = 'productivity';
+let calendarTasks = [];
+let isCalendarConnected = false;
 
 /// ADHD-optimized color gradient: warm & motivating, not anxiety-inducing
 // Purple → Warm Orange → Gold → Cyan → Bright Green
@@ -18,10 +21,178 @@ let stats = {}, mrrData = [];
 let waveColor = { r: 10, g: 210, b: 120 };
 let waveTarget = { r: 10, g: 210, b: 120 };
 
+/* ── Tab Management ─────────────────────────────────────────────────────────── */
+function switchTab(tabName) {
+  currentTab = tabName;
+
+  // Update tab buttons
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.tab === tabName) btn.classList.add('active');
+  });
+
+  // Update tab panels
+  document.querySelectorAll('.tab-panel').forEach(panel => {
+    panel.classList.remove('active');
+  });
+  document.getElementById(`tab-${tabName}`)?.classList.add('active');
+
+  // Fetch calendar data if switching to calendar tab
+  if (tabName === 'calendar' && isCalendarConnected) {
+    fetchCalendarTasks();
+  }
+}
+
+// Add tab button event listeners
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+});
+
+/* ── Google Calendar Integration ─────────────────────────────────────────────── */
+async function checkCalendarAuth() {
+  try {
+    const res = await fetch('/auth/status');
+    const data = await res.json();
+    isCalendarConnected = data.authenticated;
+
+    if (!isCalendarConnected) {
+      showCalendarStatus('auth-required', '📅 <a href="/auth/google">Connect Google Calendar</a> to see your tasks');
+      document.getElementById('tab-calendar-btn').disabled = false;
+    } else {
+      clearCalendarStatus();
+    }
+  } catch (err) {
+    console.error('Auth check failed:', err);
+  }
+}
+
+function showCalendarStatus(type, message) {
+  const status = document.getElementById('calendar-status');
+  status.className = `calendar-status ${type}`;
+  status.innerHTML = message;
+}
+
+function clearCalendarStatus() {
+  const status = document.getElementById('calendar-status');
+  status.className = 'calendar-status';
+  status.innerHTML = '';
+}
+
+async function fetchCalendarTasks() {
+  if (!isCalendarConnected) {
+    showCalendarStatus('auth-required', '📅 <a href="/auth/google">Connect Google Calendar</a> to see your tasks');
+    return;
+  }
+
+  const status = document.getElementById('calendar-status');
+  const btn = document.getElementById('btn-sync');
+
+  showCalendarStatus('loading', '⏳ Syncing tasks...');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+
+  try {
+    const res = await fetch('/api/calendar/tasks');
+    const data = await res.json();
+
+    if (data.error) {
+      showCalendarStatus('error', `❌ ${data.error}`);
+    } else {
+      calendarTasks = data || [];
+
+      if (calendarTasks.length === 0) {
+        showCalendarStatus('empty', '✅ No upcoming tasks! You\'re all caught up!');
+      } else {
+        clearCalendarStatus();
+      }
+
+      renderCalendarTasks();
+    }
+  } catch (err) {
+    showCalendarStatus('error', `❌ Failed to load tasks: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+function renderCalendarTasks() {
+  const list = document.getElementById('task-list');
+
+  if (!calendarTasks.length) {
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = calendarTasks
+    .sort((a, b) => new Date(a.dueDate || '9999-12-31') - new Date(b.dueDate || '9999-12-31'))
+    .map(task => {
+      const dueDate = task.dueDate ? new Date(task.dueDate) : null;
+      const isOverdue = dueDate && dueDate < new Date() && !task.completed;
+      const dateStr = dueDate
+        ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: dueDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined })
+        : 'No date';
+
+      return `
+        <div class="task-item ${task.completed ? 'completed' : ''}">
+          <input
+            type="checkbox"
+            ${task.completed ? 'checked' : ''}
+            onchange="updateTaskStatus('${task.id}', this.checked)"
+            title="Mark as ${task.completed ? 'incomplete' : 'complete'}"
+          />
+          <div class="task-content">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            ${dueDate ? `<div class="task-due ${isOverdue ? 'overdue' : ''}">📅 ${dateStr}${isOverdue ? ' · OVERDUE' : ''}</div>` : ''}
+            ${task.description ? `<div class="task-description">${escapeHtml(task.description)}</div>` : ''}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+}
+
+async function updateTaskStatus(taskId, completed) {
+  try {
+    const res = await fetch(`/api/calendar/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed })
+    });
+
+    if (res.ok) {
+      const updated = await res.json();
+      const idx = calendarTasks.findIndex(t => t.id === taskId);
+      if (idx >= 0) {
+        calendarTasks[idx] = updated;
+        renderCalendarTasks();
+      }
+    } else {
+      alert('Failed to update task');
+    }
+  } catch (err) {
+    console.error('Update task error:', err);
+    alert('Could not update task');
+  }
+}
+
+async function syncCalendar() {
+  await fetchCalendarTasks();
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 /* ── Init ────────────────────────────────────────────────────────────────── */
 async function init() {
   loadGoals();
   initHeaderVisibility(); // Show header on load and mouse movement
+  await checkCalendarAuth(); // Check if user is authenticated with Google Calendar
   startClock();
   await refresh();
   setInterval(refresh, 30_000);

@@ -14,7 +14,10 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"Simplify Update button - icon only, no text:*)",
       "Bash(git commit -m \"Add animated screen border based on MRR + productivity score:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(git commit -m \"Add OpenClaw setup guide with ADHD-assistant skill:*)",
+      "Bash(git commit -m \"Add Google Calendar Tasks Tab - Full Integration:*)"
     ]
   }
 }

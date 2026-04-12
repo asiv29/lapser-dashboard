@@ -5,5 +5,7 @@ dashboard.db-shm
 dashboard.db-wal
 .env
 .env.local
+.env.*.local
 dist/
 .vite/
+session-store.json

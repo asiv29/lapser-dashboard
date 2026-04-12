@@ -1,10 +1,49 @@
 const express = require('express');
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+require('dotenv').config();
+
+const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { google } = require('googleapis');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 const db = new DatabaseSync(path.join(__dirname, 'dashboard.db'));
+
+// ── Google OAuth Setup ────────────────────────────────────────────────────────
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
+}, (accessToken, refreshToken, profile, done) => {
+  // Store tokens in profile for session
+  profile.accessToken = accessToken;
+  profile.refreshToken = refreshToken;
+  return done(null, profile);
+}));
+
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+// ── Calendar Cache ───────────────────────────────────────────────────────────
+let calendarCache = {
+  tasks: [],
+  timestamp: 0,
+  ttl: (process.env.CALENDAR_CACHE_TTL || 600) * 1000
+};
+
+// ── Middleware ────────────────────────────────────────────────────────────────
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true in production with HTTPS
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 db.exec(`
@@ -196,7 +235,145 @@ app.post('/api/update', (_req, res) => {
   });
 });
 
+// ── Google OAuth Routes ──────────────────────────────────────────────────────
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/' }),
+  (req, res) => {
+    res.redirect('/');
+  }
+);
+
+app.get('/auth/status', (req, res) => {
+  if (req.user) {
+    res.json({
+      authenticated: true,
+      email: req.user.emails?.[0]?.value || req.user.displayName
+    });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+app.post('/auth/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) return res.status(500).json({ ok: false, error: err.message });
+    res.json({ ok: true });
+  });
+});
+
+// ── Google Calendar API Routes ────────────────────────────────────────────────
+async function getCalendarTasks(accessToken) {
+  const calendar = google.calendar({ version: 'v3', auth: accessToken });
+
+  try {
+    const now = new Date();
+    const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    const events = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: now.toISOString(),
+      timeMax: futureDate.toISOString(),
+      showDeleted: false,
+      singleEvents: true,
+      orderBy: 'startTime',
+      q: 'task' // Filter for tasks (optional)
+    });
+
+    // Map Google Calendar events to task format
+    return (events.data.items || []).map(event => ({
+      id: event.id,
+      title: event.summary || 'Untitled',
+      dueDate: event.start?.dateTime || event.start?.date || null,
+      description: event.description || '',
+      completed: event.status === 'cancelled' ? false : (event.extendedProperties?.private?.completed === 'true'),
+      googleEvent: true
+    }));
+  } catch (error) {
+    console.error('Calendar API error:', error.message);
+    return [];
+  }
+}
+
+app.get('/api/calendar/tasks', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ authenticated: false, tasks: [] });
+  }
+
+  try {
+    // Check cache
+    const now = Date.now();
+    if (calendarCache.tasks.length > 0 && (now - calendarCache.timestamp) < calendarCache.ttl) {
+      return res.json(calendarCache.tasks);
+    }
+
+    // Fetch fresh tasks
+    const tasks = await getCalendarTasks(req.user.accessToken);
+
+    // Update cache
+    calendarCache.tasks = tasks;
+    calendarCache.timestamp = now;
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Calendar tasks error:', error);
+    res.status(500).json({ error: error.message, tasks: [] });
+  }
+});
+
+app.patch('/api/calendar/tasks/:taskId', async (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const { taskId } = req.params;
+  const { completed } = req.body;
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth: req.user.accessToken });
+
+    // Get event
+    const event = await calendar.events.get({
+      calendarId: 'primary',
+      eventId: taskId
+    });
+
+    // Update completion status
+    event.data.status = completed ? 'cancelled' : 'confirmed';
+    event.data.extendedProperties = {
+      private: { completed: completed ? 'true' : 'false' }
+    };
+
+    // Update event
+    await calendar.events.update({
+      calendarId: 'primary',
+      eventId: taskId,
+      resource: event.data
+    });
+
+    // Clear cache
+    calendarCache.tasks = [];
+    calendarCache.timestamp = 0;
+
+    // Return updated task
+    res.json({
+      id: taskId,
+      title: event.data.summary,
+      dueDate: event.data.start?.dateTime || event.data.start?.date,
+      description: event.data.description || '',
+      completed: completed
+    });
+  } catch (error) {
+    console.error('Update task error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n  ⬢  Lapser Dashboard → http://localhost:${PORT}\n`);
+  console.log(`  📅 Google Calendar: ${process.env.GOOGLE_CLIENT_ID ? '✅ Connected' : '⚠️  Not configured'}\n`);
 });
