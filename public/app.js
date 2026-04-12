@@ -21,6 +21,7 @@ let waveTarget = { r: 10, g: 210, b: 120 };
 /* ── Init ────────────────────────────────────────────────────────────────── */
 async function init() {
   loadGoals();
+  initHeaderVisibility(); // Show header on load and mouse movement
   startClock();
   await refresh();
   setInterval(refresh, 30_000);
@@ -328,6 +329,36 @@ document.addEventListener('keydown', e => {
     if (document.getElementById('modal-hours').classList.contains('open')) submitHours();
   }
 });
+
+/* ── Header visibility (show on page load + mouse movement) ────────────── */
+function initHeaderVisibility() {
+  const header = document.getElementById('header');
+  if (!header) return;
+
+  // Show header on page load (give users a hint it's there)
+  header.style.opacity = '1';
+  header.style.transform = 'translateY(0)';
+
+  // Hide after 3 seconds of no movement
+  let hideTimeout;
+  function hideHeader() {
+    hideTimeout = setTimeout(() => {
+      header.style.opacity = '0';
+      header.style.transform = 'translateY(-100%)';
+    }, 3000);
+  }
+
+  // Show on mouse movement
+  document.addEventListener('mousemove', () => {
+    clearTimeout(hideTimeout);
+    header.style.opacity = '1';
+    header.style.transform = 'translateY(0)';
+    hideHeader();
+  });
+
+  // Start hide timer
+  hideHeader();
+}
 
 /* ── Update endpoint (pull latest code from GitHub) ──────────────────────── */
 async function updateCode() {
