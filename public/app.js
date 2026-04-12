@@ -329,5 +329,35 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ── Update endpoint (pull latest code from GitHub) ──────────────────────── */
+async function updateCode() {
+  const btn = document.getElementById('btn-update');
+  if (!btn) return;
+
+  btn.disabled = true;
+  btn.textContent = '⟳ Updating...';
+
+  try {
+    const res = await fetch('/api/update', { method: 'POST' });
+    const data = await res.json();
+
+    if (data.ok) {
+      btn.textContent = '✓ Updated!';
+      setTimeout(() => {
+        alert('Code updated! Reload the page to see changes.');
+        window.location.reload();
+      }, 500);
+    } else {
+      btn.textContent = '✗ Update failed';
+      alert('Update failed: ' + (data.error || 'Unknown error'));
+      setTimeout(() => { btn.textContent = '⟳ Update'; btn.disabled = false; }, 2000);
+    }
+  } catch (err) {
+    btn.textContent = '✗ Error';
+    alert('Error: ' + err.message);
+    setTimeout(() => { btn.textContent = '⟳ Update'; btn.disabled = false; }, 2000);
+  }
+}
+
 /* ── Go ──────────────────────────────────────────────────────────────────── */
 init();
