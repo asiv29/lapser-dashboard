@@ -13,7 +13,8 @@
       "WebSearch",
       "Bash(git add:*)",
       "Bash(git commit -m \"Simplify Update button - icon only, no text:*)",
-      "Bash(git commit -m \"Add animated screen border based on MRR + productivity score:*)"
+      "Bash(git commit -m \"Add animated screen border based on MRR + productivity score:*)",
+      "Bash(git push:*)"
     ]
   }
 }

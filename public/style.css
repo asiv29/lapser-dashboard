@@ -44,7 +44,9 @@ html, body {
 
 body {
   border: 3px solid rgb(var(--border-r), var(--border-g), var(--border-b));
-  transition: border-color 0.15s ease-out;
+  box-shadow: inset 0 0 60px 0 rgba(var(--border-r), var(--border-g), var(--border-b), 0.15),
+              0 0 40px 0 rgba(var(--border-r), var(--border-g), var(--border-b), 0.12);
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
   box-sizing: border-box;
 }
 
