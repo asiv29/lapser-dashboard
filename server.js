@@ -47,16 +47,19 @@ const PORT = process.env.PORT || 4000;
 const db = new DatabaseSync(path.join(__dirname, 'dashboard.db'));
 
 // ── Google OAuth Setup ────────────────────────────────────────────────────────
+console.log('\n🔍 Google OAuth Status:');
+console.log('   Client ID:', process.env.GOOGLE_CLIENT_ID ? '✅ Loaded' : '❌ Missing');
+console.log('   Client Secret:', process.env.GOOGLE_CLIENT_SECRET ? '✅ Loaded' : '❌ Missing');
+console.log('   Callback URL:', process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback\n');
+
 if (!process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID.includes('your-')) {
-  console.warn('\n⚠️  WARNING: Google OAuth not configured!');
-  console.warn('To enable Google Calendar integration:');
-  console.warn('1. Edit .env file in the root directory');
-  console.warn('2. Add your Google OAuth credentials:');
-  console.warn('   GOOGLE_CLIENT_ID=your-actual-client-id');
-  console.warn('   GOOGLE_CLIENT_SECRET=your-actual-client-secret');
-  console.warn('3. Restart the server\n');
-} else {
-  console.log('✅ Google Calendar: Configured\n');
+  console.warn('⚠️  Google Calendar not fully configured.');
+  console.warn('If you see auth errors, verify your Google Cloud Console setup:\n');
+  console.warn('1. Go to: https://console.cloud.google.com/');
+  console.warn('2. Create OAuth 2.0 credentials (Desktop app)');
+  console.warn('3. Set redirect URI to: http://localhost:4000/auth/google/callback');
+  console.warn('4. Enable Google Calendar API');
+  console.warn('5. Update .env with your credentials\n');
 }
 
 passport.use(new GoogleStrategy({
@@ -292,26 +295,48 @@ app.post('/api/update', (_req, res) => {
   });
 });
 
-// ── Google OAuth Routes ──────────────────────────────────────────────────────
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'] })
-);
+// ── Google OAuth Routes (only if configured) ────────────────────────────────
+if (process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.includes('your-')) {
+  app.get('/auth/google',
+    passport.authenticate('google', { scope: ['profile', 'email', 'https://www.googleapis.com/auth/calendar'] })
+  );
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/' }),
-  (req, res) => {
-    res.redirect('/');
-  }
-);
+  app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+      res.redirect('/');
+    }
+  );
+} else {
+  // Placeholder routes if OAuth not configured
+  app.get('/auth/google', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth not configured. Check server logs for setup instructions.' });
+  });
+
+  app.get('/auth/google/callback', (req, res) => {
+    res.status(503).json({ error: 'Google OAuth not configured.' });
+  });
+}
 
 app.get('/auth/status', (req, res) => {
+  const oauthConfigured = process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_ID.includes('your-');
+
+  if (!oauthConfigured) {
+    return res.json({
+      authenticated: false,
+      configured: false,
+      message: 'Google OAuth not configured'
+    });
+  }
+
   if (req.user) {
     res.json({
       authenticated: true,
+      configured: true,
       email: req.user.emails?.[0]?.value || req.user.displayName
     });
   } else {
-    res.json({ authenticated: false });
+    res.json({ authenticated: false, configured: true });
   }
 });
 
