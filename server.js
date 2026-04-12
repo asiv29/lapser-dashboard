@@ -1,6 +1,40 @@
 const express = require('express');
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+const fs = require('fs');
+
+// ── Auto-create .env if missing ──────────────────────────────────────────────
+const envPath = path.join(__dirname, '.env');
+const envExamplePath = path.join(__dirname, '.env.example');
+
+if (!fs.existsSync(envPath) && fs.existsSync(envExamplePath)) {
+  console.log('📝 Creating .env from .env.example...');
+  const exampleContent = fs.readFileSync(envExamplePath, 'utf8');
+  fs.writeFileSync(envPath, exampleContent);
+  console.log('✅ .env created. Please add your Google OAuth credentials!');
+} else if (!fs.existsSync(envPath)) {
+  console.log('⚠️  .env file not found. Creating with defaults...');
+  const defaultEnv = `# Server Configuration
+PORT=4000
+NODE_ENV=development
+
+# Google OAuth Credentials
+# Get these from: https://console.cloud.google.com/
+GOOGLE_CLIENT_ID=your-client-id-here
+GOOGLE_CLIENT_SECRET=your-client-secret-here
+GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
+
+# Session Configuration
+SESSION_SECRET=your-random-session-secret-change-this-in-production
+
+# Optional: Calendar Caching
+CALENDAR_CACHE_TTL=600
+CALENDAR_SYNC_LIMIT=30
+`;
+  fs.writeFileSync(envPath, defaultEnv);
+  console.log('✅ .env created with defaults. Update with your Google credentials!');
+}
+
 require('dotenv').config();
 
 const session = require('express-session');
@@ -13,10 +47,22 @@ const PORT = process.env.PORT || 4000;
 const db = new DatabaseSync(path.join(__dirname, 'dashboard.db'));
 
 // ── Google OAuth Setup ────────────────────────────────────────────────────────
+if (!process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID.includes('your-')) {
+  console.warn('\n⚠️  WARNING: Google OAuth not configured!');
+  console.warn('To enable Google Calendar integration:');
+  console.warn('1. Edit .env file in the root directory');
+  console.warn('2. Add your Google OAuth credentials:');
+  console.warn('   GOOGLE_CLIENT_ID=your-actual-client-id');
+  console.warn('   GOOGLE_CLIENT_SECRET=your-actual-client-secret');
+  console.warn('3. Restart the server\n');
+} else {
+  console.log('✅ Google Calendar: Configured\n');
+}
+
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_CLIENT_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: process.env.GOOGLE_CALLBACK_URL
+  clientID: process.env.GOOGLE_CLIENT_ID || 'placeholder',
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'placeholder',
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:4000/auth/google/callback'
 }, (accessToken, refreshToken, profile, done) => {
   // Store tokens in profile for session
   profile.accessToken = accessToken;
