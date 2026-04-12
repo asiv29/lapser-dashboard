@@ -20,23 +20,24 @@
     <canvas class="wave-canvas" id="wave-canvas"></canvas>
   </div>
 
-  <!-- Tab Navigation -->
-  <nav class="tabs-nav" id="tabs-nav">
-    <button class="tab-button active" data-tab="productivity">📊 Productivity</button>
-    <button class="tab-button" data-tab="calendar" id="tab-calendar-btn">📅 Tasks</button>
-  </nav>
-
   <!-- Header (hover to show) -->
   <header class="header" id="header">
-    <div class="logo">
-      <div class="logo-mark">L</div>
-      <span>LAPSER</span>
+    <div class="header-main">
+      <div class="logo">
+        <div class="logo-mark">💻💰</div>
+        <span class="logo-text">LAPSER</span>
+      </div>
+      <div class="header-right">
+        <div class="live-clock" id="live-clock"></div>
+        <button class="btn-settings" id="btn-update" onclick="updateCode()" title="Pull latest code from GitHub">⟳</button>
+        <button class="btn-settings" onclick="openModal('settings')">⚙️</button>
+      </div>
     </div>
-    <div class="header-right">
-      <div class="live-clock" id="live-clock"></div>
-      <button class="btn-settings" id="btn-update" onclick="updateCode()" title="Pull latest code from GitHub">⟳</button>
-      <button class="btn-settings" onclick="openModal('settings')">⚙️</button>
-    </div>
+    <!-- Tab Navigation (inside header, shows/hides with header) -->
+    <nav class="tabs-nav" id="tabs-nav">
+      <button class="tab-button active" data-tab="productivity">📊 Productivity</button>
+      <button class="tab-button" data-tab="calendar" id="tab-calendar-btn">📅 Tasks</button>
+    </nav>
   </header>
 
   <!-- Tab Panels -->
