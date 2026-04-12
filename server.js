@@ -226,11 +226,22 @@ app.post('/api/update', (_req, res) => {
     console.log('✅ Git pull successful');
     console.log(stdout);
 
-    // Return success but don't restart (let client reload page)
-    res.json({
-      ok: true,
-      message: 'Code updated from GitHub. Reload the page to see changes.',
-      output: stdout
+    // Also run npm install to get any new dependencies
+    console.log('📦 Installing/updating dependencies...');
+    exec('npm install', (npmError, npmStdout, npmStderr) => {
+      if (npmError) {
+        console.warn('⚠️  npm install had issues:', npmError.message);
+        // Don't fail - npm install warnings are usually OK
+      }
+
+      console.log('✅ npm install complete');
+
+      // Return success
+      res.json({
+        ok: true,
+        message: 'Code and dependencies updated from GitHub. Reload the page to see changes.',
+        output: stdout
+      });
     });
   });
 });
