@@ -245,6 +245,9 @@ function animateWaves() {
   root.style.setProperty('--wg', Math.round(waveColor.g));
   root.style.setProperty('--wb2', Math.round(waveColor.b));
 
+  // Animate screen border color smoothly (60fps)
+  updateBorderColor();
+
   const W = wCanvas.width, H = wCanvas.height;
   wCtx.clearRect(0, 0, W, H);
 
