@@ -14,20 +14,21 @@ A beautiful, ADHD-optimized productivity dashboard for tracking MRR (Monthly Rec
 
 ## Quick Start
 
-### Mac (Development)
+### 🔗 See [`QUICK_START.md`](./QUICK_START.md) for easy setup!
+
+**TL;DR:**
 ```bash
-npm install
-npm run dev
+# Laptop: Clone and start
+git clone https://github.com/asiv29/lapser-dashboard.git
+cd lapser-dashboard
+./start-laptop.sh    # Mac/Linux
+# or
+start-laptop.bat     # Windows
+
 # Server runs on http://localhost:4000
 ```
 
-### Laptop (Production)
-```bash
-npm install
-npm start
-# Server runs on http://localhost:4000
-# Use "Update" button in UI to pull latest code changes from GitHub
-```
+**Then:** Make code changes on Mac → Push to GitHub → Click "Update" button on laptop
 
 ## Architecture
 
