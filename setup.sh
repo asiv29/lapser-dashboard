@@ -39,14 +39,15 @@ fi
 
 echo ""
 
-# Install dependencies
-if [ ! -d node_modules ]; then
-  echo "Installing npm dependencies..."
-  npm install
-  echo "✅ Dependencies installed"
-else
-  echo "✅ Dependencies already installed"
+# Install/update dependencies
+echo "Installing npm dependencies..."
+npm install
+if [ $? -ne 0 ]; then
+  echo "❌ npm install failed!"
+  echo "Please check your internet connection and try again."
+  exit 1
 fi
+echo "✅ Dependencies installed"
 
 echo ""
 echo "╔════════════════════════════════════════════╗"

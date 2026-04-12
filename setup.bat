@@ -44,14 +44,16 @@ if not exist .git (
 
 echo.
 
-REM Install dependencies
-if not exist node_modules (
-  echo Installing npm dependencies...
-  call npm install
-  echo ✅ Dependencies installed
-) else (
-  echo ✅ Dependencies already installed
+REM Install/update dependencies
+echo Installing npm dependencies...
+call npm install
+if %ERRORLEVEL% NEQ 0 (
+  echo ❌ npm install failed!
+  echo Please try again or check your internet connection.
+  pause
+  exit /b 1
 )
+echo ✅ Dependencies installed
 
 echo.
 echo ╔════════════════════════════════════════════╗
