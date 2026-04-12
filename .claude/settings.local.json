@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Read(//opt/homebrew/lib/node_modules/npm/bin/**)",
+      "Bash(/opt/homebrew/bin/npm install:*)",
+      "Bash(/opt/homebrew/bin/node --version)",
+      "Bash(NODE_PATH=/opt/homebrew/bin /opt/homebrew/bin/node /opt/homebrew/bin/npm install)",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" /opt/homebrew/bin/node /opt/homebrew/bin/npm install)",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" /opt/homebrew/bin/node -e \"const {DatabaseSync} = require\\(''node:sqlite''\\); console.log\\(''built-in sqlite ok''\\)\")",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" timeout 4 /opt/homebrew/bin/node server.js)",
+      "Bash(PATH=\"/opt/homebrew/bin:$PATH\" /opt/homebrew/bin/node --check server.js)",
+      "WebSearch"
+    ]
+  }
+}

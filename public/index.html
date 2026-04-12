@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lapser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Wave background -->
+  <div class="wave-stage" id="wave-stage" aria-hidden="true">
+    <div class="wave-blob wb-1"></div>
+    <div class="wave-blob wb-2"></div>
+    <div class="wave-blob wb-3"></div>
+    <div class="wave-blob wb-4"></div>
+    <canvas class="wave-canvas" id="wave-canvas"></canvas>
+  </div>
+
+  <!-- Header (hover to show) -->
+  <header class="header" id="header">
+    <div class="logo">
+      <div class="logo-mark">L</div>
+      <span>LAPSER</span>
+    </div>
+    <div class="header-right">
+      <div class="live-clock" id="live-clock"></div>
+      <button class="btn-settings" onclick="openModal('settings')">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Main grid -->
+  <main class="main">
+    <!-- Top cards -->
+    <div class="cards-grid">
+      <!-- MRR Card -->
+      <div class="card card-mrr" id="card-mrr" data-aos="fade-up">
+        <div class="card-header">
+          <span class="card-label">Monthly Revenue</span>
+          <button class="btn-add" onclick="openModal('mrr')">+</button>
+        </div>
+        <div class="card-value" id="val-mrr">$0</div>
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" id="prog-mrr"></div>
+          </div>
+          <span class="progress-text" id="text-mrr">$0 / $10k goal</span>
+        </div>
+      </div>
+
+      <!-- Hours Card -->
+      <div class="card card-hours" id="card-hours" data-aos="fade-up">
+        <div class="card-header">
+          <span class="card-label">Productive Hours Today</span>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-add" onclick="openModal('hours')">+</button>
+            <button class="btn-delete" id="btn-delete-hours" onclick="deleteHoursForToday()" style="display: none;">−</button>
+          </div>
+        </div>
+        <div class="card-value" id="val-hours">0h</div>
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" id="prog-hours"></div>
+          </div>
+          <span class="progress-text" id="text-hours">0h / 6h goal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights section -->
+    <div class="insights-section" data-aos="fade-up">
+      <div class="insight-card">
+        <div class="insight-label">Weekly Revenue</div>
+        <div class="insight-value" id="weekly-mrr">$0</div>
+        <div class="insight-sub">This month so far</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">This Week Hours</div>
+        <div class="insight-value" id="weekly-hours">0h</div>
+        <div class="insight-sub">Mon–today</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Avg Daily</div>
+        <div class="insight-value" id="daily-avg">0h</div>
+        <div class="insight-sub">Last 7 days</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-label">Consistency</div>
+        <div class="insight-value" id="consistency">0%</div>
+        <div class="insight-sub">Days logged</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="overlay" id="modal-settings" onclick="closeModal('settings')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Goals & Settings</span>
+        <button class="modal-close" onclick="closeModal('settings')">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Daily productive hours goal</label>
+        <input id="goal-hours" type="number" class="field-input" min="1" max="24" value="6" />
+
+        <label class="field-label">Monthly MRR goal</label>
+        <input id="goal-mrr" type="number" class="field-input" min="0" step="100" value="10000" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="saveGoals()">Save Goals</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MRR Modal -->
+  <div class="overlay" id="modal-mrr" onclick="closeModal('mrr')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Update MRR</span>
+        <button class="modal-close" onclick="closeModal('mrr')">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Amount ($)</label>
+        <input id="in-mrr" type="number" class="field-input" placeholder="5000" min="0" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('mrr')">Cancel</button>
+        <button class="btn-primary" onclick="submitMRR()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hours Modal -->
+  <div class="overlay" id="modal-hours" onclick="closeModal('hours')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span class="modal-title">Log Hours</span>
+        <button class="modal-close" onclick="closeModal('hours')">✕</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Hours worked</label>
+        <input id="in-hours" type="number" class="field-input" placeholder="6" min="0.5" max="24" step="0.5" />
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('hours')">Cancel</button>
+        <button class="btn-primary" onclick="submitHours()">Log</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
