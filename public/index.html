@@ -95,29 +95,44 @@
       </div>
 
       <!-- Timer content -->
-      <div class="timer-fullscreen-content">
-        <button class="timer-close-btn" onclick="hideTimerFullscreen()" title="Exit timer">✕</button>
+      <div class="timer-fullscreen-content" onclick="toggleTimerDisplay(event)">
+        <button class="timer-close-btn" onclick="hideTimerFullscreen(event)" title="Exit timer">✕</button>
 
-        <div class="timer-fullscreen-display">
-          <div class="timer-fullscreen-time" id="timer-fullscreen-time">10:00</div>
-          <span class="timer-fullscreen-label" id="timer-fullscreen-label">⏱️ Work Session</span>
+        <!-- Setup mode (before start) -->
+        <div class="timer-setup-mode" id="timer-setup-mode">
+          <div class="timer-fullscreen-display">
+            <div class="timer-fullscreen-time" id="timer-fullscreen-time">10:00</div>
+            <span class="timer-fullscreen-label" id="timer-fullscreen-label">⏱️ Work Session</span>
+          </div>
+
+          <div class="timer-fullscreen-controls">
+            <button class="timer-fullscreen-btn pause-btn" onclick="timerTogglePause()" id="btn-timer-pause-fullscreen">▶ Start</button>
+            <button class="timer-fullscreen-btn stop-btn" onclick="timerStop()" id="btn-timer-stop-fullscreen">⏹ Stop</button>
+          </div>
+
+          <div class="timer-fullscreen-selector" id="interval-selector-fullscreen">
+            <button onclick="setTimerDuration(5)">5m</button>
+            <button onclick="setTimerDuration(10)" class="active">10m</button>
+            <button onclick="setTimerDuration(15)">15m</button>
+            <button onclick="setTimerDuration(25)">25m</button>
+            <input type="number" id="custom-timer-input-fullscreen" class="custom-timer-input" min="1" max="180" placeholder="Custom">
+            <button onclick="toggleReversePomodoro()" title="Toggle Reverse Pomodoro mode">🔄</button>
+          </div>
+
+          <div class="timer-hint">Press ESC to exit</div>
         </div>
 
-        <div class="timer-fullscreen-controls">
-          <button class="timer-fullscreen-btn pause-btn" onclick="timerTogglePause()" id="btn-timer-pause-fullscreen">▶ Start</button>
-          <button class="timer-fullscreen-btn stop-btn" onclick="timerStop()" id="btn-timer-stop-fullscreen">⏹ Stop</button>
+        <!-- Motivational mode (during active work) -->
+        <div class="timer-motivational-mode" id="timer-motivational-mode" style="display: none;">
+          <div class="timer-motivational-text" id="timer-motivational-text">Keep going! You've got this! 💪</div>
+          <div class="timer-motivational-subtitle">Tap anywhere to check time</div>
         </div>
 
-        <div class="timer-fullscreen-selector" id="interval-selector-fullscreen">
-          <button onclick="setTimerDuration(5)">5m</button>
-          <button onclick="setTimerDuration(10)" class="active">10m</button>
-          <button onclick="setTimerDuration(15)">15m</button>
-          <button onclick="setTimerDuration(25)">25m</button>
-          <input type="number" id="custom-timer-input-fullscreen" class="custom-timer-input" min="1" max="180" placeholder="Custom">
-          <button onclick="toggleReversePomodoro()" title="Toggle Reverse Pomodoro mode">🔄</button>
+        <!-- Time peek (briefly shown on tap) -->
+        <div class="timer-time-peek" id="timer-time-peek" style="display: none;">
+          <div class="timer-fullscreen-time" id="timer-peek-time">10:00</div>
+          <div class="timer-peek-subtitle">Tap to dismiss</div>
         </div>
-
-        <div class="timer-hint">Press ESC to exit</div>
       </div>
     </div>
 

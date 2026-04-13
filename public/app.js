@@ -30,8 +30,30 @@ let timerState = {
   sessionType: 'standard',   // 'standard' | 'reverse-pomodoro'
   startTime: null,           // Timestamp when started
   pausedTime: null,          // Timestamp when paused
+  showingTime: false,        // Whether time peek is visible
 };
 let timerIntervalId = null;
+let timerPeekTimeout = null;
+
+/* Motivational messages for distraction-free focus */
+const MOTIVATIONAL_MESSAGES = [
+  "You've got this! 💪",
+  "Stay focused! 🎯",
+  "Great work! Keep going! ⚡",
+  "You're on fire! 🔥",
+  "Almost there! 🚀",
+  "Keep pushing! 💯",
+  "You're crushing it! 💎",
+  "Focus mode activated! 🧠",
+  "One step closer! 📈",
+  "Believe in yourself! 🌟",
+  "You're making progress! 🎉",
+  "Stay in the zone! ✨",
+  "Amazing dedication! 👏",
+  "Pure focus energy! ⚡",
+  "You're unstoppable! 💪",
+];
+let currentMotivationalIndex = 0;
 
 /* ── Tab Management ─────────────────────────────────────────────────────────── */
 function switchTab(tabName) {
@@ -546,6 +568,7 @@ function hideTimerPanel() {
 function hideTimerFullscreen() {
   timerState.isActive = false;
   if (timerState.isRunning) timerTogglePause();
+  exitMotivationalMode();
   const fullscreen = document.getElementById('timer-fullscreen');
   if (fullscreen) fullscreen.style.display = 'none';
   const panel = document.getElementById('timer-panel');
@@ -567,16 +590,19 @@ function timerTogglePause() {
     clearInterval(timerIntervalId);
     if (btn) btn.textContent = '▶ Resume';
     if (btnFullscreen) btnFullscreen.textContent = '▶ Resume';
+    exitMotivationalMode();
   } else {
     // Start/Resume
     timerState.isRunning = true;
     if (!timerState.startTime) {
       timerState.startTime = Date.now();
+      enterMotivationalMode(); // Enter motivational mode on first start
     } else if (timerState.pausedTime) {
       // Adjust startTime for pause duration
       const pauseDuration = Date.now() - timerState.pausedTime;
       timerState.startTime += pauseDuration;
       timerState.pausedTime = null;
+      enterMotivationalMode(); // Re-enter motivational mode on resume
     }
     if (btn) btn.textContent = '⏸ Pause';
     if (btnFullscreen) btnFullscreen.textContent = '⏸ Pause';
@@ -595,6 +621,7 @@ function timerStop() {
       timerState.startTime = null;
       timerState.isRunning = false;
       clearInterval(timerIntervalId);
+      exitMotivationalMode();
       updateTimerDisplay();
     }
   }
@@ -719,6 +746,87 @@ function showTimerCompletionFeedback() {
       card.style.animation = 'pulse 0.3s ease-in-out';
     }, 10);
   }
+}
+
+/* ── Motivational Mode (distraction-free focus) ──────────────────────────── */
+function enterMotivationalMode() {
+  const setupMode = document.getElementById('timer-setup-mode');
+  const motivationalMode = document.getElementById('timer-motivational-mode');
+  const timePeek = document.getElementById('timer-time-peek');
+
+  if (setupMode) setupMode.classList.add('hidden');
+  if (timePeek) timePeek.classList.add('hidden');
+  if (motivationalMode) {
+    motivationalMode.classList.remove('hidden');
+    updateMotivationalMessage();
+  }
+
+  // Change motivational message every 8 seconds
+  setInterval(() => {
+    if (timerState.isRunning) {
+      updateMotivationalMessage();
+    }
+  }, 8000);
+}
+
+function exitMotivationalMode() {
+  const setupMode = document.getElementById('timer-setup-mode');
+  const motivationalMode = document.getElementById('timer-motivational-mode');
+  const timePeek = document.getElementById('timer-time-peek');
+
+  if (setupMode) setupMode.classList.remove('hidden');
+  if (motivationalMode) motivationalMode.classList.add('hidden');
+  if (timePeek) timePeek.classList.add('hidden');
+
+  clearTimeout(timerPeekTimeout);
+  timerState.showingTime = false;
+}
+
+function updateMotivationalMessage() {
+  const textElem = document.getElementById('timer-motivational-text');
+  if (textElem) {
+    textElem.textContent = MOTIVATIONAL_MESSAGES[currentMotivationalIndex];
+    currentMotivationalIndex = (currentMotivationalIndex + 1) % MOTIVATIONAL_MESSAGES.length;
+  }
+}
+
+function toggleTimerDisplay(event) {
+  // Only toggle if clicking on the motivational mode, not on buttons
+  if (event.target.closest('button') || event.target.closest('input')) {
+    return;
+  }
+
+  // If timer is running and in motivational mode, show time peek
+  if (timerState.isRunning && !timerState.showingTime) {
+    showTimePeek();
+  }
+}
+
+function showTimePeek() {
+  const motivationalMode = document.getElementById('timer-motivational-mode');
+  const timePeek = document.getElementById('timer-time-peek');
+
+  if (motivationalMode) motivationalMode.classList.add('hidden');
+  if (timePeek) timePeek.classList.remove('hidden');
+
+  timerState.showingTime = true;
+
+  // Auto-hide after 4 seconds
+  clearTimeout(timerPeekTimeout);
+  timerPeekTimeout = setTimeout(() => {
+    hideTimePeek();
+  }, 4000);
+}
+
+function hideTimePeek() {
+  const motivationalMode = document.getElementById('timer-motivational-mode');
+  const timePeek = document.getElementById('timer-time-peek');
+
+  if (motivationalMode) motivationalMode.classList.remove('hidden');
+  if (timePeek) timePeek.classList.add('hidden');
+
+  timerState.showingTime = false;
+  clearTimeout(timerPeekTimeout);
 }
 
 /* ── Keyboard ────────────────────────────────────────────────────────────── */
