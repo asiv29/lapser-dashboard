@@ -83,7 +83,45 @@
       </div>
     </div>
 
-    <!-- Timer Panel -->
+    <!-- Fullscreen Timer Overlay -->
+    <div class="timer-fullscreen" id="timer-fullscreen" style="display: none;">
+      <!-- Lava lamp background -->
+      <div class="lava-lamp-container">
+        <div class="lava-blob lava-blob-1"></div>
+        <div class="lava-blob lava-blob-2"></div>
+        <div class="lava-blob lava-blob-3"></div>
+        <div class="lava-blob lava-blob-4"></div>
+        <div class="lava-lamp-glow"></div>
+      </div>
+
+      <!-- Timer content -->
+      <div class="timer-fullscreen-content">
+        <button class="timer-close-btn" onclick="hideTimerFullscreen()" title="Exit timer">✕</button>
+
+        <div class="timer-fullscreen-display">
+          <div class="timer-fullscreen-time" id="timer-fullscreen-time">10:00</div>
+          <span class="timer-fullscreen-label" id="timer-fullscreen-label">⏱️ Work Session</span>
+        </div>
+
+        <div class="timer-fullscreen-controls">
+          <button class="timer-fullscreen-btn pause-btn" onclick="timerTogglePause()" id="btn-timer-pause-fullscreen">▶ Start</button>
+          <button class="timer-fullscreen-btn stop-btn" onclick="timerStop()" id="btn-timer-stop-fullscreen">⏹ Stop</button>
+        </div>
+
+        <div class="timer-fullscreen-selector" id="interval-selector-fullscreen">
+          <button onclick="setTimerDuration(5)">5m</button>
+          <button onclick="setTimerDuration(10)" class="active">10m</button>
+          <button onclick="setTimerDuration(15)">15m</button>
+          <button onclick="setTimerDuration(25)">25m</button>
+          <input type="number" id="custom-timer-input-fullscreen" class="custom-timer-input" min="1" max="180" placeholder="Custom">
+          <button onclick="toggleReversePomodoro()" title="Toggle Reverse Pomodoro mode">🔄</button>
+        </div>
+
+        <div class="timer-hint">Press ESC to exit</div>
+      </div>
+    </div>
+
+    <!-- Compact Timer Panel (hidden when fullscreen is active) -->
     <div class="timer-panel" id="timer-panel" style="display: none;">
       <div class="timer-display">
         <div class="timer-time" id="timer-display">10:00</div>

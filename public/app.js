@@ -531,29 +531,42 @@ function toggleTimer() {
 
 function showTimerPanel() {
   timerState.isActive = true;
-  const panel = document.getElementById('timer-panel');
-  if (panel) panel.style.display = 'flex';
+  // Show fullscreen timer instead of compact panel
+  const fullscreen = document.getElementById('timer-fullscreen');
+  if (fullscreen) fullscreen.style.display = 'flex';
   updateTimerDisplay();
+  // Hide body scroll
+  document.body.style.overflow = 'hidden';
 }
 
 function hideTimerPanel() {
+  hideTimerFullscreen();
+}
+
+function hideTimerFullscreen() {
   timerState.isActive = false;
   if (timerState.isRunning) timerTogglePause();
+  const fullscreen = document.getElementById('timer-fullscreen');
+  if (fullscreen) fullscreen.style.display = 'none';
   const panel = document.getElementById('timer-panel');
   if (panel) panel.style.display = 'none';
   timerState.elapsedSeconds = 0;
+  // Restore body scroll
+  document.body.style.overflow = 'auto';
 }
 
 function timerTogglePause() {
+  // Update both fullscreen and compact pause buttons
   const btn = document.getElementById('btn-timer-pause');
-  if (!btn) return;
+  const btnFullscreen = document.getElementById('btn-timer-pause-fullscreen');
 
   if (timerState.isRunning) {
     // Pause
     timerState.isRunning = false;
     timerState.pausedTime = Date.now();
     clearInterval(timerIntervalId);
-    btn.textContent = '▶ Resume';
+    if (btn) btn.textContent = '▶ Resume';
+    if (btnFullscreen) btnFullscreen.textContent = '▶ Resume';
   } else {
     // Start/Resume
     timerState.isRunning = true;
@@ -565,7 +578,8 @@ function timerTogglePause() {
       timerState.startTime += pauseDuration;
       timerState.pausedTime = null;
     }
-    btn.textContent = '⏸ Pause';
+    if (btn) btn.textContent = '⏸ Pause';
+    if (btnFullscreen) btnFullscreen.textContent = '⏸ Pause';
     startTimerLoop();
   }
 }
@@ -616,8 +630,12 @@ function updateTimerDisplay() {
     display = `${mins}:${String(secs).padStart(2, '0')}`;
   }
 
+  // Update both compact and fullscreen displays
   const elem = document.getElementById('timer-display');
   if (elem) elem.textContent = display;
+
+  const fullscreenElem = document.getElementById('timer-fullscreen-time');
+  if (fullscreenElem) fullscreenElem.textContent = display;
 }
 
 function setTimerDuration(minutes) {
@@ -644,7 +662,11 @@ function setTimerDuration(minutes) {
 }
 
 function setCustomTimerDuration() {
-  const customInput = document.getElementById('custom-timer-input');
+  // Try both fullscreen and compact inputs
+  let customInput = document.getElementById('custom-timer-input-fullscreen');
+  if (!customInput || !customInput.value) {
+    customInput = document.getElementById('custom-timer-input');
+  }
   if (!customInput) return;
 
   const customMinutes = parseInt(customInput.value);
@@ -659,8 +681,8 @@ function setCustomTimerDuration() {
   timerState.isRunning = false;
   clearInterval(timerIntervalId);
 
-  // Remove active state from preset buttons
-  const buttons = document.querySelectorAll('.timer-interval-selector button');
+  // Remove active state from preset buttons (both fullscreen and compact)
+  const buttons = document.querySelectorAll('.timer-interval-selector button, .timer-fullscreen-selector button');
   buttons.forEach(btn => btn.classList.remove('active'));
 
   updateTimerDisplay();
@@ -711,7 +733,8 @@ document.addEventListener('keydown', e => {
     if (document.getElementById('modal-mrr').classList.contains('open')) submitMRR();
     if (document.getElementById('modal-hours').classList.contains('open')) submitHours();
     // Set custom timer duration if custom input is focused
-    if (document.activeElement?.id === 'custom-timer-input') {
+    if (document.activeElement?.id === 'custom-timer-input' ||
+        document.activeElement?.id === 'custom-timer-input-fullscreen') {
       setCustomTimerDuration();
     }
   }
@@ -720,10 +743,29 @@ document.addEventListener('keydown', e => {
 // Handle custom timer input focus/blur
 document.addEventListener('DOMContentLoaded', () => {
   const customInput = document.getElementById('custom-timer-input');
+  const customInputFullscreen = document.getElementById('custom-timer-input-fullscreen');
+
   if (customInput) {
     customInput.addEventListener('change', setCustomTimerDuration);
     customInput.addEventListener('blur', () => {
       if (customInput.value) setCustomTimerDuration();
+    });
+  }
+
+  if (customInputFullscreen) {
+    customInputFullscreen.addEventListener('change', setCustomTimerDuration);
+    customInputFullscreen.addEventListener('blur', () => {
+      if (customInputFullscreen.value) setCustomTimerDuration();
+    });
+  }
+
+  // Sync both custom inputs
+  if (customInput && customInputFullscreen) {
+    customInput.addEventListener('input', () => {
+      customInputFullscreen.value = customInput.value;
+    });
+    customInputFullscreen.addEventListener('input', () => {
+      customInput.value = customInputFullscreen.value;
     });
   }
 });
