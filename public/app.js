@@ -21,6 +21,18 @@ let stats = {}, mrrData = [];
 let waveColor = { r: 10, g: 210, b: 120 };
 let waveTarget = { r: 10, g: 210, b: 120 };
 
+/* ── Timer State (ADHD-optimized productivity timer) ──────────────────────── */
+let timerState = {
+  isRunning: false,
+  isActive: false,           // Timer UI is showing
+  elapsedSeconds: 0,
+  targetDurationMinutes: 10, // Default ADHD-friendly interval
+  sessionType: 'standard',   // 'standard' | 'reverse-pomodoro'
+  startTime: null,           // Timestamp when started
+  pausedTime: null,          // Timestamp when paused
+};
+let timerIntervalId = null;
+
 /* ── Tab Management ─────────────────────────────────────────────────────────── */
 function switchTab(tabName) {
   currentTab = tabName;
@@ -484,8 +496,8 @@ async function submitMRR() {
   await refresh();
 }
 
-async function submitHours() {
-  const hours = parseFloat(document.getElementById('in-hours').value);
+async function submitHours(hoursOverride = null) {
+  const hours = hoursOverride || parseFloat(document.getElementById('in-hours').value);
   if (isNaN(hours) || hours <= 0) return;
 
   const date = new Date().toISOString().split('T')[0];
@@ -496,7 +508,9 @@ async function submitHours() {
   });
 
   closeModal('hours');
-  document.getElementById('in-hours').value = '';
+  if (!hoursOverride) {
+    document.getElementById('in-hours').value = '';
+  }
   await refresh();
 }
 
@@ -506,12 +520,165 @@ async function deleteHoursForDate(date) {
   await refresh();
 }
 
+/* ── Timer Functions (ADHD-optimized productivity timer) ──────────────────── */
+function toggleTimer() {
+  if (timerState.isActive) {
+    hideTimerPanel();
+  } else {
+    showTimerPanel();
+  }
+}
+
+function showTimerPanel() {
+  timerState.isActive = true;
+  const panel = document.getElementById('timer-panel');
+  if (panel) panel.style.display = 'flex';
+  updateTimerDisplay();
+}
+
+function hideTimerPanel() {
+  timerState.isActive = false;
+  if (timerState.isRunning) timerTogglePause();
+  const panel = document.getElementById('timer-panel');
+  if (panel) panel.style.display = 'none';
+  timerState.elapsedSeconds = 0;
+}
+
+function timerTogglePause() {
+  const btn = document.getElementById('btn-timer-pause');
+  if (!btn) return;
+
+  if (timerState.isRunning) {
+    // Pause
+    timerState.isRunning = false;
+    timerState.pausedTime = Date.now();
+    clearInterval(timerIntervalId);
+    btn.textContent = '▶ Resume';
+  } else {
+    // Start/Resume
+    timerState.isRunning = true;
+    if (!timerState.startTime) {
+      timerState.startTime = Date.now();
+    } else if (timerState.pausedTime) {
+      // Adjust startTime for pause duration
+      const pauseDuration = Date.now() - timerState.pausedTime;
+      timerState.startTime += pauseDuration;
+      timerState.pausedTime = null;
+    }
+    btn.textContent = '⏸ Pause';
+    startTimerLoop();
+  }
+}
+
+function timerStop() {
+  if (timerState.isRunning || timerState.elapsedSeconds > 0) {
+    const minutes = (timerState.elapsedSeconds / 60).toFixed(1);
+    if (confirm(`Log ${minutes} minutes as productive hours?`)) {
+      submitSessionFromTimer();
+    } else {
+      // Discard
+      timerState.elapsedSeconds = 0;
+      timerState.startTime = null;
+      timerState.isRunning = false;
+      clearInterval(timerIntervalId);
+      updateTimerDisplay();
+    }
+  }
+}
+
+function startTimerLoop() {
+  if (timerIntervalId) clearInterval(timerIntervalId);
+  timerIntervalId = setInterval(() => {
+    const now = Date.now();
+    timerState.elapsedSeconds = Math.floor((now - timerState.startTime) / 1000);
+
+    // Check if reached target duration
+    if (timerState.elapsedSeconds >= timerState.targetDurationMinutes * 60) {
+      timerTogglePause(); // Auto-pause at target
+      showTimerCompletionFeedback();
+    }
+
+    updateTimerDisplay();
+  }, 100); // Update every 100ms for smooth display
+}
+
+function updateTimerDisplay() {
+  const remaining = timerState.targetDurationMinutes * 60 - timerState.elapsedSeconds;
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+
+  let display;
+  if (timerState.sessionType === 'reverse-pomodoro') {
+    const elapsed_mins = Math.floor(timerState.elapsedSeconds / 60);
+    const elapsed_secs = timerState.elapsedSeconds % 60;
+    display = `${elapsed_mins}:${String(elapsed_secs).padStart(2, '0')}`;
+  } else {
+    display = `${mins}:${String(secs).padStart(2, '0')}`;
+  }
+
+  const elem = document.getElementById('timer-display');
+  if (elem) elem.textContent = display;
+}
+
+function setTimerDuration(minutes) {
+  timerState.targetDurationMinutes = minutes;
+  timerState.elapsedSeconds = 0;
+  timerState.startTime = null;
+  timerState.isRunning = false;
+  clearInterval(timerIntervalId);
+
+  // Update button states
+  const buttons = document.querySelectorAll('.timer-interval-selector button');
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.textContent.includes(minutes + 'm') || (minutes === 25 && btn.textContent.includes('25'))) {
+      btn.classList.add('active');
+    }
+  });
+
+  updateTimerDisplay();
+}
+
+function toggleReversePomodoro() {
+  timerState.sessionType = timerState.sessionType === 'reverse-pomodoro' ? 'standard' : 'reverse-pomodoro';
+  const label = document.getElementById('timer-label');
+  if (label) {
+    label.textContent = timerState.sessionType === 'reverse-pomodoro' ? '⏳ Reverse Pomodoro' : '⏱️ Work Session';
+  }
+  timerState.elapsedSeconds = 0;
+  timerState.startTime = null;
+  timerState.isRunning = false;
+  clearInterval(timerIntervalId);
+  updateTimerDisplay();
+}
+
+function submitSessionFromTimer() {
+  const hours = timerState.elapsedSeconds / 3600;
+  if (hours > 0) {
+    submitHours(hours);
+    showTimerCompletionFeedback();
+  }
+  hideTimerPanel();
+}
+
+function showTimerCompletionFeedback() {
+  // Flash card with pulse animation
+  const card = document.getElementById('card-hours');
+  if (card) {
+    card.style.animation = 'none';
+    setTimeout(() => {
+      card.style.animation = 'pulse 0.3s ease-in-out';
+    }, 10);
+  }
+}
+
 /* ── Keyboard ────────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeModal('mrr');
     closeModal('hours');
     closeModal('settings');
+    if (timerState.isActive) hideTimerPanel();
   }
   if (e.key === 'Enter') {
     if (document.getElementById('modal-mrr').classList.contains('open')) submitMRR();

@@ -68,6 +68,7 @@
         <div class="card-header">
           <span class="card-label">Productive Hours Today</span>
           <div style="display: flex; gap: 6px;">
+            <button class="btn-add" onclick="toggleTimer()" title="Start a work session timer">⏱️</button>
             <button class="btn-add" onclick="openModal('hours')">+</button>
             <button class="btn-delete" id="btn-delete-hours" onclick="deleteHoursForToday()" style="display: none;">−</button>
           </div>
@@ -79,6 +80,25 @@
           </div>
           <span class="progress-text" id="text-hours">0h / 6h goal</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Timer Panel -->
+    <div class="timer-panel" id="timer-panel" style="display: none;">
+      <div class="timer-display">
+        <div class="timer-time" id="timer-display">10:00</div>
+        <span class="timer-label" id="timer-label">⏱️ Work Session</span>
+      </div>
+      <div class="timer-controls">
+        <button onclick="timerTogglePause()" id="btn-timer-pause">▶ Start</button>
+        <button onclick="timerStop()" id="btn-timer-stop">⏹ Stop</button>
+      </div>
+      <div class="timer-interval-selector" id="interval-selector">
+        <button onclick="setTimerDuration(5)">5m</button>
+        <button onclick="setTimerDuration(10)" class="active">10m</button>
+        <button onclick="setTimerDuration(15)">15m</button>
+        <button onclick="setTimerDuration(25)">25m</button>
+        <button onclick="toggleReversePomodoro()" title="Toggle Reverse Pomodoro mode">🔄</button>
       </div>
     </div>
 

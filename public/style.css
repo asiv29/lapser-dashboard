@@ -841,6 +841,118 @@ input[type="checkbox"] {
 .card[data-aos]:nth-child(1) { animation-delay: 0.2s; }
 .card[data-aos]:nth-child(2) { animation-delay: 0.4s; }
 
+/* ── Timer Panel (ADHD-optimized) ─────────────────────────────────────────── */
+.timer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(0,212,255,0.08), rgba(100,200,255,0.04));
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  animation: slideUp 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.timer-display {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.timer-time {
+  font-size: 4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--txt-1);
+  font-family: 'SF Mono', 'Monaco', 'Menlo', monospace;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.timer-label {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--txt-2);
+  margin-top: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.timer-controls button {
+  flex: 1;
+  min-width: 100px;
+  padding: 0.875rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--apple-blue), #0051d5);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.timer-controls button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 122, 255, 0.35);
+}
+
+.timer-controls button:active {
+  transform: translateY(0);
+}
+
+.timer-interval-selector {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.timer-interval-selector button {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: var(--txt-2);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.timer-interval-selector button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: var(--txt-1);
+}
+
+.timer-interval-selector button.active {
+  background: linear-gradient(135deg, var(--apple-blue), #0051d5);
+  border-color: var(--apple-blue);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .cards-grid {
