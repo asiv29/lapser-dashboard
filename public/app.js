@@ -636,6 +636,33 @@ function setTimerDuration(minutes) {
     }
   });
 
+  // Clear custom input
+  const customInput = document.getElementById('custom-timer-input');
+  if (customInput) customInput.value = '';
+
+  updateTimerDisplay();
+}
+
+function setCustomTimerDuration() {
+  const customInput = document.getElementById('custom-timer-input');
+  if (!customInput) return;
+
+  const customMinutes = parseInt(customInput.value);
+  if (isNaN(customMinutes) || customMinutes < 1 || customMinutes > 180) {
+    alert('Please enter a duration between 1 and 180 minutes');
+    return;
+  }
+
+  timerState.targetDurationMinutes = customMinutes;
+  timerState.elapsedSeconds = 0;
+  timerState.startTime = null;
+  timerState.isRunning = false;
+  clearInterval(timerIntervalId);
+
+  // Remove active state from preset buttons
+  const buttons = document.querySelectorAll('.timer-interval-selector button');
+  buttons.forEach(btn => btn.classList.remove('active'));
+
   updateTimerDisplay();
 }
 
@@ -683,6 +710,21 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     if (document.getElementById('modal-mrr').classList.contains('open')) submitMRR();
     if (document.getElementById('modal-hours').classList.contains('open')) submitHours();
+    // Set custom timer duration if custom input is focused
+    if (document.activeElement?.id === 'custom-timer-input') {
+      setCustomTimerDuration();
+    }
+  }
+});
+
+// Handle custom timer input focus/blur
+document.addEventListener('DOMContentLoaded', () => {
+  const customInput = document.getElementById('custom-timer-input');
+  if (customInput) {
+    customInput.addEventListener('change', setCustomTimerDuration);
+    customInput.addEventListener('blur', () => {
+      if (customInput.value) setCustomTimerDuration();
+    });
   }
 });
 

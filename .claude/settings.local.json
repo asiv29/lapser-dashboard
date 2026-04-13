@@ -18,7 +18,8 @@
       "WebFetch(domain:github.com)",
       "Bash(git commit -m \"Add OpenClaw setup guide with ADHD-assistant skill:*)",
       "Bash(git commit -m \"Add Google Calendar Tasks Tab - Full Integration:*)",
-      "Bash(git commit -m \"Make Google Calendar OAuth optional + add debug logging:*)"
+      "Bash(git commit -m \"Make Google Calendar OAuth optional + add debug logging:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

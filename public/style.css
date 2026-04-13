@@ -941,6 +941,39 @@ input[type="checkbox"] {
   box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
 }
 
+.custom-timer-input {
+  width: 70px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: var(--txt-1);
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.custom-timer-input::placeholder {
+  color: var(--txt-3);
+}
+
+.custom-timer-input:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.custom-timer-input:focus {
+  outline: none;
+  background: linear-gradient(135deg, var(--apple-blue), #0051d5);
+  border-color: var(--apple-blue);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+
+.custom-timer-input:focus::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
